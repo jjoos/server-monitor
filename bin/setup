@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+[[ ! -e bin/setup ]] && 
+  echo "You should run this in the project root, exiting." && 
+  exit 1
+
+linux () {
+	echo "Installing requirements"
+	sudo apt-get install curl git mercurial bzr make binutils bison gcc \
+	  build-essential
+
+	echo "Installing gvm"
+	install_gvm
+
+	echo "Installing gpm"
+	build_gpm
+
+	echo "Installing gvp"
+	build_gvp
+}
+
+osx () {
+	echo "Installing requirements"
+	brew install mercurial
+	xcode-select --install
+
+	echo "Installing gvm"
+	install_gvm
+
+	echo "Installing gpm"
+	brew install gpm
+
+	echo "Installing gvp"
+	brew install gvp
+}
+
+install_gvm () {
+	bash < <(curl -s https://raw.github.com/moovweb/gvm/master/binscripts/gvm-installer)
+}
+
+build_gpm () {
+	mkdir -p tmp
+	pushd tmp
+		[[ -d gpm ]] || git clone https://github.com/pote/gpm.git
+		pushd gpm
+			git checkout v1.1.1 # You can ignore this part if you want to install HEAD.
+			./configure
+			sudo make install
+		popd
+	popd
+}
+
+build_gvp () {
+	mkdir -p tmp
+	pushd tmp
+		[[ -d gvp ]] || git clone https://github.com/pote/gvp.git
+		pushd gvp
+			git checkout v0.0.3 # You can ignore this part if you want to install HEAD.
+			./configure
+			sudo make install
+		popd
+	popd
+	gvp init
+}
+
+case $( uname -s ) in
+	Linux)
+		linux
+	;;
+	Darwin)
+		]osx
+	;;
+	*)
+    echo "Unknown OS, exiting."
+    exit 1
+  ;;
+esac
